@@ -1,0 +1,12 @@
+name: camera_cloud_pwa
+description: Cloud-first camera recorder
+publish_to: none
+version: 0.1.0+1
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  web: ^1.1.0
+flutter:
+  uses-material-design: true
