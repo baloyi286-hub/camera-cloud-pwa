@@ -1,7 +1,7 @@
 // Cloud-first browser camera. HTTPS or localhost required.
 // Upload API must authorize the current user; cookies must be Secure + HttpOnly + SameSite.
 (() => {
-  let stream, recorder, sessionId, queue = Promise.resolve(), failed = null, seq = 0;
+  let stream, recorder, sessionId, apiBase, queue = Promise.resolve(), failed = null, seq = 0;
   const video = document.createElement('video');
   Object.assign(video, {autoplay: true, muted: true, playsInline: true});
   video.setAttribute('playsinline', '');
@@ -47,7 +47,7 @@
       if (!window.MediaRecorder) throw new Error('Recording unsupported');
       const type=mime();
       const started=await json(api+'/api/uploads/start',{contentType:type || 'video/webm'});
-      sessionId=started.sessionId; seq=0; failed=null; queue=Promise.resolve();
+      sessionId=started.sessionId; apiBase=api; seq=0; failed=null; queue=Promise.resolve();
       recorder=new MediaRecorder(stream,type ? {mimeType:type} : undefined);
       recorder.ondataavailable=e => {
         if (!e.data.size) return;
@@ -72,7 +72,7 @@
       await queue;
       if (failed) throw failed;
       // A server-side finalizer must combine container fragments into a playable video.
-      await json((window.cameraCloudApiBase || '')+'/unused',{}).catch(()=>{});
+      await json(apiBase+'/api/uploads/'+encodeURIComponent(sessionId)+'/finish',{parts:seq});
       return true;
     },
     close() { if (recorder?.state === 'recording') recorder.stop();
